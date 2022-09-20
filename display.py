@@ -85,5 +85,8 @@ class Display():
                     px_size,
                 )
 
+    def draw_decorations(self, screen):
+        pass
+
     def update(self):
         pass

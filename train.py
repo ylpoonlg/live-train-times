@@ -1,6 +1,7 @@
 from display import Display, FontStyles
 from fonts import Fonts
 import math
+import pygame
 from zeep import Client, Settings
 from zeep import xsd
 from zeep.plugins import HistoryPlugin
@@ -11,10 +12,11 @@ class TrainDeparture(Display):
     FETCH_INTERVAL = 20
     PAGE_INTERVAL  = 10
 
-    def __init__(self, w, h, px_sep, x, y):
+    def __init__(self, w, h, px_sep, x, y, crs = "MAN"):
         super().__init__(w, h, px_sep, x, y)
         self.draw_spacers()
         self.init_ldbws_api()
+        self.crs = crs
         self.call_pages = []
         self.services   = []
         self.ticks = 20
@@ -36,6 +38,15 @@ class TrainDeparture(Display):
             ])
         )
         self.ldb_header = header(TokenValue=TOKEN)
+
+    def draw_decorations(self, screen):
+        font = pygame.font.SysFont("arial", 36)
+        img = font.render("Departures", True, (200, 200, 200))
+        screen.blit(img, (50, 30))
+
+        # font = pygame.font.SysFont("arial", 30)
+        # img = font.render("Manchester Piccadilly", True, (200, 200, 200))
+        # screen.blit(img, (750, 25))
 
     def draw_spacers(self):
         for i in range(self.w // (self.SERVICE_WIDTH + self.PADDING) + 1):
@@ -60,13 +71,11 @@ class TrainDeparture(Display):
         self.draw_rect(0, 34 + ((self.h-34) // (9+3))*(9+3), self.w, 9 + 3)
 
     def fetch_data(self):
-        crs = "MAN"
-
         if self.client == None:
             return
         res = self.client.service.GetDepBoardWithDetails(
             numRows = self.w // self.SERVICE_WIDTH + 1,
-            crs = crs,
+            crs = self.crs,
             _soapheaders = [self.ldb_header],
         )
 
@@ -88,7 +97,6 @@ class TrainDeparture(Display):
                 self.call_pages.append([-1, -1])
 
             i += 1
-
 
     def update(self):
         if self.ticks % self.FETCH_INTERVAL == 0:

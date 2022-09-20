@@ -1,4 +1,4 @@
-UPDATE_INTERVAL = 10
+PIXEL_SIZE  = 6
 
 class Colors():
     SCREEN_BG = (10, 10, 10)
