@@ -1,3 +1,4 @@
+from config import parser
 from display import Display, FontStyles
 from fonts import Fonts
 import math
@@ -12,14 +13,20 @@ class TrainDeparture(Display):
     FETCH_INTERVAL = 20
     PAGE_INTERVAL  = 10
 
-    def __init__(self, w, h, px_sep, x, y, crs = "MAN"):
+    def __init__(self, w, h, px_sep, x, y, crs = ""):
         super().__init__(w, h, px_sep, x, y)
         self.draw_spacers()
         self.init_ldbws_api()
-        self.crs = crs
         self.call_pages = []
         self.services   = []
         self.ticks = 20
+
+        parser.add_argument("--crs", type=str, help="Station CRS Code", default="MAN")
+        args, _ = parser.parse_known_args()
+        if crs == "":
+            self.crs = args.crs
+        else:
+            self.crs = crs
 
     def init_ldbws_api(self):
         WSDL_URL = "https://lite.realtime.nationalrail.co.uk/OpenLDBWS/wsdl.aspx?ver=2021-11-01"
@@ -27,7 +34,11 @@ class TrainDeparture(Display):
 
         history = HistoryPlugin()
         settings = Settings(strict=False, xsd_ignore_sequence_order=True)
-        self.client = Client(wsdl=WSDL_URL, plugins=[history], settings=settings)
+
+        try:
+            self.client = Client(wsdl=WSDL_URL, plugins=[history], settings=settings)
+        except:
+            print("Failed to connect to SOAP client. Check Network Connection.")
 
         header = xsd.Element(
             '{http://thalesgroup.com/RTTI/2013-11-28/Token/types}AccessToken',
@@ -80,7 +91,9 @@ class TrainDeparture(Display):
         )
 
         old_services = self.services.copy()
-        self.services = res.trainServices.service
+        if res.trainServices != None:
+            self.services = res.trainServices.service
+
         i = 0
         while i < len(self.services):
             t = self.services[i]
