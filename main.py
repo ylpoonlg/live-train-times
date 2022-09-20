@@ -29,18 +29,13 @@ def update():
 
 def main_loop():
     running = True
-    i = 12
     while running:
         for event in pygame.event.get():  
             if event.type == pygame.QUIT:  
                 running = False
 
-        if i > UPDATE_INTERVAL:
-            update()
-            i = 0
-
+        update()
         time.sleep(0.5)
-        i += 0.5
 
 if __name__ == "__main__":
     pygame.init()

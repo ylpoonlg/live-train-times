@@ -7,7 +7,7 @@ class Display():
         self.w, self.h = w, h
         self.x, self.y = x, y 
         self.px_sep = px_sep
-        self.pixels = [[Colors.LED_BG for j in range(w)] for i in range(h)]
+        self.pixels = [[Colors.LED_BG for _ in range(w)] for _ in range(h)]
 
     def get_text_length(self, text, style = FontStyles.REGU):
         xx = 1
@@ -84,3 +84,6 @@ class Display():
                     ),
                     px_size,
                 )
+
+    def update(self):
+        pass
