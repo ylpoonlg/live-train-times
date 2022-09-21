@@ -1,4 +1,4 @@
-from config import parser
+from config import CLK_FREQ, parser
 from display import Display, FontStyles
 from fonts import Fonts
 import math
@@ -10,8 +10,8 @@ from zeep.plugins import HistoryPlugin
 class TrainDeparture(Display):
     SERVICE_WIDTH = 120
     PADDING = 8
-    FETCH_INTERVAL = 20
-    PAGE_INTERVAL  = 10
+    FETCH_INTERVAL = 10 * CLK_FREQ
+    PAGE_INTERVAL  = 5 * CLK_FREQ
 
     def __init__(self, w, h, px_sep, x, y, crs = ""):
         super().__init__(w, h, px_sep, x, y)
@@ -19,7 +19,7 @@ class TrainDeparture(Display):
         self.init_ldbws_api()
         self.call_pages = []
         self.services   = []
-        self.ticks = 20
+        self.ticks = 0
 
         parser.add_argument("--crs", type=str, help="Station CRS Code", default="MAN")
         args, _ = parser.parse_known_args()
@@ -39,6 +39,7 @@ class TrainDeparture(Display):
             self.client = Client(wsdl=WSDL_URL, plugins=[history], settings=settings)
         except:
             print("Failed to connect to SOAP client. Check Network Connection.")
+            self.client = None
 
         header = xsd.Element(
             '{http://thalesgroup.com/RTTI/2013-11-28/Token/types}AccessToken',
@@ -124,7 +125,7 @@ class TrainDeparture(Display):
             
             yy = 0
             # Line 1
-            self.print(t.std, xx, yy, self.SERVICE_WIDTH, style=FontStyles.LARG)
+            self.print(t.std, xx, yy, self.SERVICE_WIDTH, style=FontStyles.LARG, ticks=self.ticks)
             platform_txt = f"Plat {t.platform if t.platform else '-'}"
             platform_txt_len = self.get_text_length(platform_txt, style=FontStyles.LARG)
             self.print(
@@ -143,13 +144,14 @@ class TrainDeparture(Display):
                 yy,
                 self.SERVICE_WIDTH,
                 style=FontStyles.LARG,
+                ticks=self.ticks,
             )
             yy += 17
 
             # Line 3
             calling_points = t.subsequentCallingPoints.callingPointList[0].callingPoint
 
-            self.print("Calling at:", xx, yy, self.SERVICE_WIDTH, style=FontStyles.NARR)
+            self.print("Calling at:", xx, yy, self.SERVICE_WIDTH, style=FontStyles.NARR, ticks=self.ticks)
 
             call_page_size = (self.h - yy) // 12 - 3
             total_call_pages = math.ceil(len(calling_points) / call_page_size)
@@ -178,6 +180,7 @@ class TrainDeparture(Display):
                 yy,
                 txt_len,
                 style=FontStyles.NARR,
+                ticks=self.ticks
             )
             yy += 12
 
@@ -188,15 +191,18 @@ class TrainDeparture(Display):
                 else:
                     c = " "
 
-                self.print(c, xx, yy, self.SERVICE_WIDTH - 8, style=FontStyles.REGU)
+                self.print(c, xx, yy, self.SERVICE_WIDTH - 8, style=FontStyles.REGU, ticks=self.ticks)
                 yy += 12
 
             # Line 4
-            self.print(f"Formed of {t.length} coaches", xx, yy, self.SERVICE_WIDTH - 8, style=FontStyles.REGU)
+            if t.length != None:
+                self.print(f"Formed of {t.length} coaches", xx, yy, self.SERVICE_WIDTH - 8, style=FontStyles.REGU, ticks=self.ticks)
+            else:
+                self.print("", xx, yy, self.SERVICE_WIDTH - 8, style=FontStyles.REGU, ticks=self.ticks)
             yy += 12
 
             # Line 4
-            self.print(f"{t.operator}", xx, yy, self.SERVICE_WIDTH - 8, style=FontStyles.BOLD)
+            self.print(f"{t.operator}", xx, yy, self.SERVICE_WIDTH - 8, style=FontStyles.BOLD, ticks=self.ticks)
             yy += 12
 
             i += 1
@@ -205,3 +211,23 @@ class TrainDeparture(Display):
         self.ticks += 1
         if self.ticks > 100000:
             self.ticks = 0
+
+    def abbrv(self, text) -> str:
+        WORD_ABBRV = {
+            "International": "Intl.",
+        }
+        FULL_ABBRV = {
+            "Great Western Railway": "GWR",
+        }
+
+        result = []
+        words = text.split(" ")
+        for w in words:
+            result.append(WORD_ABBRV.get(w, w))
+        text =  " ".join(result)
+
+        for k, v in FULL_ABBRV.items():
+            text = text.replace(k, v)
+
+        return text
+

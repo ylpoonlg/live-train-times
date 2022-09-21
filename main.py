@@ -1,7 +1,7 @@
 import pygame
 import time
 
-from config import Colors, PIXEL_SIZE, parser
+from config import CLK_FREQ, Colors, PIXEL_SIZE, parser
 from train import TrainDeparture
 
 led_panels = []
@@ -52,7 +52,7 @@ def main_loop():
                 running = False
 
         update()
-        time.sleep(0.5)
+        time.sleep(1/CLK_FREQ)
 
 if __name__ == "__main__":
     pygame.init()

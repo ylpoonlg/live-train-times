@@ -26,9 +26,19 @@ class Display():
 
         return xx - 1
 
-    def print(self, text: str, x: int, y: int, w: int = -1, color = Colors.LED_FG, style = FontStyles.REGU):
+    def print(self, text: str, x: int, y: int,
+            w: int = -1, color = Colors.LED_FG, style = FontStyles.REGU,
+            ticks: int = -1,
+            ):
+        text = self.abbrv(text)
+        text_length = self.get_text_length(text, style)
         if w == -1:
-            w = self.get_text_length(text, style)
+            w = text_length
+
+        if text_length <= w or ticks == -1:
+            xoffset = 0
+        else:
+            xoffset = (ticks*4) % (text_length+w+5) - w
 
         xx = x
         font_size = 9
@@ -47,20 +57,22 @@ class Display():
 
             for i in range(font_size):
                 for j in range(lw+1):
-                    if y+i < self.h and x+j < self.w and x+j < xx + w:
+                    x_pos = x+j-xoffset
+                    if y+i < self.h and x_pos < self.w and x_pos < xx + w and x_pos >= xx:
                         if i < lh and j < lw:
                             if letter[i][j] == 1:
-                                self.pixels[y+i][x+j] = color
+                                self.pixels[y+i][x_pos] = color
                             else:
-                                self.pixels[y+i][x+j] = Colors.LED_BG
+                                self.pixels[y+i][x_pos] = Colors.LED_BG
                         else:
-                            self.pixels[y+i][x+j] = Colors.LED_BG
+                            self.pixels[y+i][x_pos] = Colors.LED_BG
 
             x += lw + 1
 
-        while x < xx + w and x < self.w:
-            for i in range(font_size):
-                self.pixels[y+i][x] = Colors.LED_BG
+        while x-xoffset < xx + w and x-xoffset < self.w:
+            if x-xoffset >= xx:
+                for i in range(font_size):
+                    self.pixels[y+i][x-xoffset] = Colors.LED_BG
             x += 1
 
     def draw_rect(self, x, y, w, h, color = Colors.SCREEN_BG):
@@ -90,3 +102,6 @@ class Display():
 
     def update(self):
         pass
+
+    def abbrv(self, text) -> str:
+        return text
