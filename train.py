@@ -1,6 +1,5 @@
 from config import CLK_FREQ, parser
 from display import Display, FontStyles
-from fonts import Fonts
 import math
 import pygame
 from zeep import Client, Settings

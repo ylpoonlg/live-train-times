@@ -20,7 +20,8 @@ def init_led_panels():
         led_panels = [
             TrainDeparture(
                 scr_w//PIXEL_SIZE,
-                (scr_h - 120)//PIXEL_SIZE,
+                # (scr_h - 120)//PIXEL_SIZE,
+                214,
                 PIXEL_SIZE,
                 0, 120,
             ),
@@ -50,9 +51,14 @@ def main_loop():
         for event in pygame.event.get():  
             if event.type == pygame.QUIT:  
                 running = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_q:
+                    running = False
 
         update()
         time.sleep(1/CLK_FREQ)
+
+    print("Stopping...")
 
 if __name__ == "__main__":
     pygame.init()
