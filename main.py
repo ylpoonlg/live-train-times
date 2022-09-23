@@ -1,3 +1,20 @@
+def load_config():
+    try:
+        import config
+        config.__file__
+    except:
+        import os
+        import shutil
+        print("No config file found\nCreating new config file")
+        cur_path = os.path.dirname(__file__)
+        default_file = cur_path+"/default_config.py"
+        new_file     = cur_path+"/config.py"
+        shutil.copyfile(default_file, new_file)
+
+load_config()
+
+import os
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
 import time
 
