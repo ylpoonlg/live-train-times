@@ -40,8 +40,16 @@ class Display():
         else:
             xoffset = (ticks*4) % (text_length+w+5) - w
 
-        xx = x
         font_size = 9
+        if style == FontStyles.LARG:
+            font_size = 13
+
+        for i in range(x, x+w):
+            for j in range(font_size):
+                if y+j < self.h and i < self.w:
+                    self.pixels[y+j][i] = Colors.LED_BG
+
+        xx = x
         for c in text:
             if style == FontStyles.BOLD:
                 letter = Fonts.bold.get(c, Fonts.bold.get('-', []))
@@ -49,7 +57,6 @@ class Display():
                 letter = Fonts.narrow.get(c, Fonts.narrow.get('-', []))
             elif style == FontStyles.LARG:
                 letter = Fonts.large.get(c, Fonts.large.get('-', []))
-                font_size = 13
             else:
                 letter = Fonts.regular.get(c, Fonts.regular.get('-', []))
 
@@ -69,11 +76,6 @@ class Display():
 
             x += lw + 1
 
-        while x-xoffset < xx + w and x-xoffset < self.w:
-            if x-xoffset >= xx:
-                for i in range(font_size):
-                    self.pixels[y+i][x-xoffset] = Colors.LED_BG
-            x += 1
 
     def draw_rect(self, x, y, w, h, color = Colors.SCREEN_BG):
         for i in range(h):
