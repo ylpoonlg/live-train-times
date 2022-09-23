@@ -7,7 +7,7 @@ from zeep import xsd
 from zeep.plugins import HistoryPlugin
 
 class TrainDeparture(Display):
-    SERVICE_WIDTH = 120
+    SERVICE_WIDTH = 130
     PADDING = 8
     FETCH_INTERVAL = 10 * CLK_FREQ
     PAGE_INTERVAL  = 5 * CLK_FREQ
@@ -121,11 +121,17 @@ class TrainDeparture(Display):
         xx = self.PADDING
         while i < len(services):
             t = services[i]
+            t_dest = t.destination.location[0].locationName
             
             yy = 0
             # Line 1
             self.print(t.std, xx, yy, self.SERVICE_WIDTH, style=FontStyles.LARG, ticks=self.ticks)
+
             platform_txt = f"Plat {t.platform if t.platform else '-'}"
+            if self.ticks % self.PAGE_INTERVAL < self.PAGE_INTERVAL // 2:
+                if t.etd == "Delayed":
+                    platform_txt = "Delayed"
+
             platform_txt_len = self.get_text_length(platform_txt, style=FontStyles.LARG)
             self.print(
                 platform_txt,
@@ -138,7 +144,7 @@ class TrainDeparture(Display):
 
             # Line 2
             self.print(
-                t.destination.location[0].locationName,
+                t_dest,
                 xx,
                 yy,
                 self.SERVICE_WIDTH,
@@ -147,10 +153,15 @@ class TrainDeparture(Display):
             )
             yy += 17
 
-            # Line 3
-            calling_points = t.subsequentCallingPoints.callingPointList[0].callingPoint
+            END_LINE_INDENT = 8
 
-            self.print("Calling at:", xx, yy, self.SERVICE_WIDTH, style=FontStyles.NARR, ticks=self.ticks)
+            # Line 3
+            calling_points = []
+            if t.subsequentCallingPoints != None:
+                if len(t.subsequentCallingPoints.callingPointList) > 0:
+                    calling_points = t.subsequentCallingPoints.callingPointList[0].callingPoint
+
+            self.print("Calling at:", xx, yy, self.SERVICE_WIDTH - END_LINE_INDENT, style=FontStyles.NARR, ticks=self.ticks)
 
             call_page_size = (self.h - yy) // 12 - 3
             total_call_pages = math.ceil(len(calling_points) / call_page_size)
@@ -175,7 +186,7 @@ class TrainDeparture(Display):
             txt_len = self.get_text_length(page_txt, style=FontStyles.NARR)
             self.print(
                 page_txt,
-                xx + self.SERVICE_WIDTH - txt_len,
+                xx + self.SERVICE_WIDTH - END_LINE_INDENT - txt_len,
                 yy,
                 txt_len,
                 style=FontStyles.NARR,
@@ -190,18 +201,18 @@ class TrainDeparture(Display):
                 else:
                     c = " "
 
-                self.print(c, xx, yy, self.SERVICE_WIDTH - 8, style=FontStyles.REGU, ticks=self.ticks)
+                self.print(c, xx, yy, self.SERVICE_WIDTH - END_LINE_INDENT, style=FontStyles.REGU, ticks=self.ticks)
                 yy += 12
 
             # Line 4
             if t.length != None:
-                self.print(f"Formed of {t.length} coaches", xx, yy, self.SERVICE_WIDTH - 8, style=FontStyles.REGU, ticks=self.ticks)
+                self.print(f"Formed of {t.length} coaches", xx, yy, self.SERVICE_WIDTH - END_LINE_INDENT, style=FontStyles.REGU, ticks=self.ticks)
             else:
-                self.print("", xx, yy, self.SERVICE_WIDTH - 8, style=FontStyles.REGU, ticks=self.ticks)
+                self.print("", xx, yy, self.SERVICE_WIDTH - END_LINE_INDENT, style=FontStyles.REGU, ticks=self.ticks)
             yy += 12
 
             # Line 4
-            self.print(f"{t.operator}", xx, yy, self.SERVICE_WIDTH - 8, style=FontStyles.BOLD, ticks=self.ticks)
+            self.print(f"{t.operator}", xx, yy, self.SERVICE_WIDTH - END_LINE_INDENT, style=FontStyles.BOLD, ticks=self.ticks)
             yy += 12
 
             i += 1

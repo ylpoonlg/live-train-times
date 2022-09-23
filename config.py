@@ -1,7 +1,7 @@
 import argparse
 
 CLK_FREQ = 8
-PIXEL_SIZE  = 5
+PIXEL_SIZE  = 4
 
 class Colors():
     SCREEN_BG = (10, 10, 10)
