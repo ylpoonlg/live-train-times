@@ -10,6 +10,7 @@ class Display():
         self.pixels = [[Colors.LED_BG for _ in range(w)] for _ in range(h)]
 
     def get_text_length(self, text, style = FontStyles.REGU):
+        text = self.abbrv(text)
         xx = 1
         for c in text:
             if style == FontStyles.BOLD:
