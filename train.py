@@ -2,6 +2,9 @@ from config import CLK_FREQ, parser
 from display import Display, FontStyles
 import math
 import pygame
+import threading
+from gtts import gTTS
+from playsound import playsound
 from zeep import Client, Settings
 from zeep import xsd
 from zeep.plugins import HistoryPlugin
@@ -9,8 +12,10 @@ from zeep.plugins import HistoryPlugin
 class TrainDeparture(Display):
     SERVICE_WIDTH = 130
     PADDING = 8
-    FETCH_INTERVAL = 10 * CLK_FREQ
-    PAGE_INTERVAL  = 5 * CLK_FREQ
+
+    FETCH_INTERVAL    = 10 * CLK_FREQ
+    PAGE_INTERVAL     = 5 * CLK_FREQ
+    ANNOUNCE_INTERVAL = 120 * CLK_FREQ
 
     def __init__(self, w, h, px_sep, x, y, crs = ""):
         super().__init__(w, h, px_sep, x, y)
@@ -54,10 +59,6 @@ class TrainDeparture(Display):
         font = pygame.font.SysFont("arial", 36)
         img = font.render("Departures", True, (200, 200, 200))
         screen.blit(img, (50, 30))
-
-        # font = pygame.font.SysFont("arial", 30)
-        # img = font.render("Manchester Piccadilly", True, (200, 200, 200))
-        # screen.blit(img, (750, 25))
 
     def draw_spacers(self):
         for i in range(self.w // (self.SERVICE_WIDTH + self.PADDING) + 1):
@@ -111,6 +112,14 @@ class TrainDeparture(Display):
 
             i += 1
 
+    def announce(self, msg):
+        try:
+            tts = gTTS(msg, lang="en-gb")
+            tts.save("./annc.mp3")
+            playsound("./annc.mp3", False)
+        except:
+            print("=> Announcement not available")
+
     def update(self):
         if self.ticks % self.FETCH_INTERVAL == 0:
             self.fetch_data()
@@ -119,19 +128,20 @@ class TrainDeparture(Display):
 
         i = 0
         xx = self.PADDING
+        annc_text = []
         while i < len(services):
             t = services[i]
             t_dest = t.destination.location[0].locationName
+
+            annc_t = ""
             
             yy = 0
             # Line 1
             self.print(t.std, xx, yy, self.SERVICE_WIDTH, style=FontStyles.LARG, ticks=self.ticks)
-
             platform_txt = f"Plat {t.platform if t.platform else '-'}"
             if self.ticks % self.PAGE_INTERVAL < self.PAGE_INTERVAL // 2:
                 if t.etd == "Delayed":
                     platform_txt = "Delayed"
-
             platform_txt_len = self.get_text_length(platform_txt, style=FontStyles.LARG)
             self.print(
                 platform_txt,
@@ -153,16 +163,13 @@ class TrainDeparture(Display):
             )
             yy += 17
 
-            END_LINE_INDENT = 8
-
             # Line 3
+            END_LINE_INDENT = 8
             calling_points = []
             if t.subsequentCallingPoints != None:
                 if len(t.subsequentCallingPoints.callingPointList) > 0:
                     calling_points = t.subsequentCallingPoints.callingPointList[0].callingPoint
-
             self.print("Calling at:", xx, yy, self.SERVICE_WIDTH - END_LINE_INDENT, style=FontStyles.NARR, ticks=self.ticks)
-
             call_page_size = (self.h - yy) // 12 - 3
             total_call_pages = math.ceil(len(calling_points) / call_page_size)
             if total_call_pages != self.call_pages[i][1]:
@@ -175,14 +182,12 @@ class TrainDeparture(Display):
                     self.call_pages[i][0] += 1
                 else:
                     self.call_pages[i][0] = 1
-
             cur_page = self.call_pages[i][0]
             tot_pages = self.call_pages[i][1]
             if cur_page == -1 or total_call_pages == -1:
                 page_txt = f"Page - of -"
             else:
                 page_txt = f"Page {cur_page} of {tot_pages}"
-
             txt_len = self.get_text_length(page_txt, style=FontStyles.NARR)
             self.print(
                 page_txt,
@@ -200,7 +205,6 @@ class TrainDeparture(Display):
                     c = calling_points[j].locationName
                 else:
                     c = " "
-
                 self.print(c, xx, yy, self.SERVICE_WIDTH - END_LINE_INDENT, style=FontStyles.REGU, ticks=self.ticks)
                 yy += 12
 
@@ -218,6 +222,43 @@ class TrainDeparture(Display):
             i += 1
             xx += self.SERVICE_WIDTH + self.PADDING
 
+
+            # Announcement Text
+            do_annc = True
+            try:
+                if t.platform is None:
+                    raise AssertionError
+                std_hh, std_mm = t.std.split(":")
+                annc_t += f"Platform {t.platform}. for the {std_hh} {std_mm} {t.operator} service. to. {t_dest}. "
+                annc_t += "Calling at. "
+                for j in range(len(calling_points)):
+                    annc_t += calling_points[j].locationName + ". "
+                if t.length != None:
+                    annc_t += f"This train is formed of {t.length} coaches. "
+            except:
+                do_annc = False
+
+            if do_annc:
+                annc_text.append(annc_t)
+
+        btp_msg = """If you see something that doesn't look right, speak to staff,
+        or text the British Transport Police, on, 6 1 O 1 6.. We'll sort it..
+        See it. Say it. Sorted."""
+        if self.ticks % self.ANNOUNCE_INTERVAL == 0:
+            if len(annc_text) > 0:
+                threading.Thread(target=self.announce, args=(". ".join(annc_text),)).start()
+            else:
+                threading.Thread(
+                    target=self.announce,
+                    args=(btp_msg,),
+                ).start()
+        elif self.ticks % (2 * self.ANNOUNCE_INTERVAL) == self.ANNOUNCE_INTERVAL // 2:
+            threading.Thread(
+                target=self.announce,
+                args=(btp_msg,),
+            ).start()
+
+        # Increment ticks count
         self.ticks += 1
         if self.ticks > 100000:
             self.ticks = 0
