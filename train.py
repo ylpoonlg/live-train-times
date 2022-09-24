@@ -241,6 +241,18 @@ class TrainDeparture(Display):
             if do_annc:
                 annc_text.append(annc_t)
 
+        while xx < self.w:
+            yy = 0
+            self.print("", xx, yy, self.SERVICE_WIDTH)
+            yy += 17
+            self.print("", xx, yy, self.SERVICE_WIDTH)
+            yy += 17
+            END_LINE_INDENT = 8
+            while yy < self.h:
+                self.print("", xx, yy, self.SERVICE_WIDTH - END_LINE_INDENT)
+                yy += 12
+            xx += self.SERVICE_WIDTH + self.PADDING
+
         btp_msg = """If you see something that doesn't look right, speak to staff,
         or text the British Transport Police, on, 6 1 O 1 6.. We'll sort it..
         See it. Say it. Sorted."""
