@@ -1,0 +1,4 @@
+pygame
+zeep
+gtts
+playsound
