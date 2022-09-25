@@ -1,4 +1,4 @@
-from config import CLK_FREQ, parser
+from config import CLK_FREQ, parser, LDBWS_TOKEN
 from display import Display, FontStyles
 import math
 import pygame
@@ -34,7 +34,6 @@ class TrainDeparture(Display):
 
     def init_ldbws_api(self):
         WSDL_URL = "https://lite.realtime.nationalrail.co.uk/OpenLDBWS/wsdl.aspx?ver=2021-11-01"
-        TOKEN = "your-ldbws-token-here"
 
         history = HistoryPlugin()
         settings = Settings(strict=False, xsd_ignore_sequence_order=True)
@@ -53,7 +52,7 @@ class TrainDeparture(Display):
                     xsd.String()),
             ])
         )
-        self.ldb_header = header(TokenValue=TOKEN)
+        self.ldb_header = header(TokenValue=LDBWS_TOKEN)
 
     def draw_decorations(self, screen):
         font = pygame.font.SysFont("arial", 36)
