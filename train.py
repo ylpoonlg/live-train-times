@@ -122,7 +122,15 @@ class TrainDeparture(Display):
 
     def update(self, events=[]):
         if self.ticks % self.FETCH_INTERVAL == 0:
-            self.fetch_data()
+            try:
+                self.fetch_data()
+            except:
+                print("Failed to fetch data")
+                try:
+                    print("Attempting to reconnect to SOAP client...")
+                    self.init_ldbws_api()
+                except:
+                    print("Failed to reconnect to SOAP client")
 
         services = self.services
 
