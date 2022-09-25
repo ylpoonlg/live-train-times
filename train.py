@@ -120,7 +120,7 @@ class TrainDeparture(Display):
         except:
             print("=> Announcement not available")
 
-    def update(self):
+    def update(self, events=[]):
         if self.ticks % self.FETCH_INTERVAL == 0:
             self.fetch_data()
 
@@ -229,7 +229,7 @@ class TrainDeparture(Display):
                 if t.platform is None:
                     raise AssertionError
                 std_hh, std_mm = t.std.split(":")
-                annc_t += f"Platform {t.platform}. for the {std_hh} {std_mm} {t.operator} service. to. {t_dest}. "
+                annc_t += f"Platform {t.platform}. for the {std_hh} {std_mm} {t.operator} service. to. {t_dest}. . "
                 annc_t += "Calling at. "
                 for j in range(len(calling_points)):
                     annc_t += calling_points[j].locationName + ". "
@@ -254,11 +254,11 @@ class TrainDeparture(Display):
             xx += self.SERVICE_WIDTH + self.PADDING
 
         btp_msg = """If you see something that doesn't look right, speak to staff,
-        or text the British Transport Police, on, 6 1 O 1 6.. We'll sort it..
+        or text the British Transport Police, on, 6 1 O 1 6. . We'll sort it. .
         See it. Say it. Sorted."""
         if self.ticks % self.ANNOUNCE_INTERVAL == 0:
             if len(annc_text) > 0:
-                threading.Thread(target=self.announce, args=(". ".join(annc_text),)).start()
+                threading.Thread(target=self.announce, args=(".\n\n".join(annc_text),)).start()
             else:
                 threading.Thread(
                     target=self.announce,
@@ -269,6 +269,19 @@ class TrainDeparture(Display):
                 target=self.announce,
                 args=(btp_msg,),
             ).start()
+
+
+        # Event Control
+        for e in events:
+            if e.type == pygame.KEYDOWN:
+                if e.key == pygame.K_6:
+                    threading.Thread(
+                        target=self.announce,
+                        args=(btp_msg,),
+                    ).start()
+                elif e.key == pygame.K_p:
+                    if len(annc_text) > 0:
+                        threading.Thread(target=self.announce, args=(".\n\n".join(annc_text),)).start()
 
         # Increment ticks count
         self.ticks += 1

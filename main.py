@@ -53,11 +53,11 @@ def render_decorations():
         led.draw_decorations(screen)
     pygame.display.flip()
 
-def update():
+def update(events):
     global led_panels, screen
 
     for led in led_panels:
-        led.update()
+        led.update(events = events)
         led.render(screen)
 
     pygame.display.flip()
@@ -65,14 +65,15 @@ def update():
 def main_loop():
     running = True
     while running:
-        for event in pygame.event.get():  
+        events = pygame.event.get()
+        for event in events:  
             if event.type == pygame.QUIT:  
                 running = False
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_q:
                     running = False
 
-        update()
+        update(events)
         time.sleep(1/CLK_FREQ)
 
     print("Stopping...")
