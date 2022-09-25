@@ -6,8 +6,9 @@ class Display():
     def __init__(self, w, h, px_sep, x, y):
         self.w, self.h = w, h
         self.x, self.y = x, y 
-        self.px_sep = px_sep
-        self.pixels = [[Colors.LED_BG for _ in range(w)] for _ in range(h)]
+        self.px_sep   = px_sep
+        self.pixels   = [[Colors.LED_BG for _ in range(w)] for _ in range(h)]
+        self.cache_px = [[Colors.SCREEN_BG for _ in range(w)] for _ in range(h)]
 
     def get_text_length(self, text, style = FontStyles.REGU):
         text = self.abbrv(text)
@@ -90,15 +91,17 @@ class Display():
         px_size = self.px_sep * 0.45
         for i in range(len(pixels)):
             for j in range(len(pixels[0])):
-                pygame.draw.circle(
-                    screen,
-                    pixels[i][j],
-                    (
-                        self.x + int((j + 1) * self.px_sep),
-                        self.y + int((i + 1) * self.px_sep),
-                    ),
-                    px_size,
-                )
+                if self.cache_px[i][j] != pixels[i][j]:
+                    pygame.draw.circle(
+                        screen,
+                        pixels[i][j],
+                        (
+                            self.x + int((j + 1) * self.px_sep),
+                            self.y + int((i + 1) * self.px_sep),
+                        ),
+                        px_size,
+                    )
+                    self.cache_px[i][j] = pixels[i][j]
 
     def draw_decorations(self, screen):
         pass
