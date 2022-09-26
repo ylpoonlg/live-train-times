@@ -250,9 +250,9 @@ class TrainDeparture(Display):
 
         while xx < self.w:
             yy = 0
-            self.print("", xx, yy, self.SERVICE_WIDTH)
+            self.print("", xx, yy, self.SERVICE_WIDTH, style=FontStyles.LARG)
             yy += 17
-            self.print("", xx, yy, self.SERVICE_WIDTH)
+            self.print("", xx, yy, self.SERVICE_WIDTH, style=FontStyles.LARG)
             yy += 17
             END_LINE_INDENT = 8
             while yy < self.h:
