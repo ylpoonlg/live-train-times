@@ -1,4 +1,4 @@
-from config import CLK_FREQ, parser, LDBWS_TOKEN
+from config import CLK_FREQ, parser, LDBWS_TOKEN, PIXEL_SIZE
 from display import Display, FontStyles
 import math
 import pygame
@@ -54,9 +54,9 @@ class TrainDeparture(Display):
         self.ldb_header = header(TokenValue=LDBWS_TOKEN)
 
     def draw_decorations(self, screen):
-        font = pygame.font.SysFont("arial", 36)
+        font = pygame.font.SysFont("arial", 8 * PIXEL_SIZE)
         img = font.render("Departures", True, (200, 200, 200))
-        screen.blit(img, (50, 30))
+        screen.blit(img, (8 * PIXEL_SIZE, 6 * PIXEL_SIZE))
 
     def draw_spacers(self):
         for i in range(self.w // (self.SERVICE_WIDTH + self.PADDING) + 1):

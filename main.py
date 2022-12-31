@@ -37,10 +37,9 @@ def init_led_panels():
         led_panels = [
             TrainDeparture(
                 scr_w//PIXEL_SIZE,
-                # (scr_h - 120)//PIXEL_SIZE,
                 214,
                 PIXEL_SIZE,
-                0, 120,
+                0, 20 * PIXEL_SIZE,
             ),
         ]
     else:
