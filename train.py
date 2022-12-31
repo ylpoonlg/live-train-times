@@ -4,7 +4,6 @@ import math
 import pygame
 import threading
 from gtts import gTTS
-from playsound import playsound
 from zeep import Client, Settings
 from zeep import xsd
 from zeep.plugins import HistoryPlugin
@@ -115,7 +114,9 @@ class TrainDeparture(Display):
         try:
             tts = gTTS(msg, lang="en-gb")
             tts.save("./annc.mp3")
-            playsound("./annc.mp3", False)
+            pygame.mixer.init()
+            pygame.mixer.music.load("./annc.mp3")
+            pygame.mixer.music.play()
         except:
             print("=> Announcement not available")
 
